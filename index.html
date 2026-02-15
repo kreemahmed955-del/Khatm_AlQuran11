@@ -1,0 +1,98 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Noor Al-Iman | نور الإيمان</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&family=Cairo:wght@200..1000&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg-main: #0a0a0a;
+        --accent: #d4af37;
+        --text-main: #d4af37;
+        --text-body: #e5e5e5;
+        --glass-bg: rgba(255, 255, 255, 0.05);
+        --glass-border: rgba(212, 175, 55, 0.2);
+      }
+
+      body.theme-emerald {
+        --bg-main: #062216;
+        --accent: #d4af37;
+        --text-main: #d4af37;
+        --text-body: #ecfdf5;
+        --glass-bg: rgba(255, 255, 255, 0.03);
+        --glass-border: rgba(52, 211, 153, 0.2);
+      }
+
+      body.theme-midnight {
+        --bg-main: #020617;
+        --accent: #38bdf8;
+        --text-main: #38bdf8;
+        --text-body: #f8fafc;
+        --glass-bg: rgba(255, 255, 255, 0.02);
+        --glass-border: rgba(56, 189, 248, 0.2);
+      }
+
+      body.theme-sepia {
+        --bg-main: #f5f2e9;
+        --accent: #7c2d12;
+        --text-main: #7c2d12;
+        --text-body: #431407;
+        --glass-bg: rgba(0, 0, 0, 0.03);
+        --glass-border: rgba(124, 45, 18, 0.2);
+      }
+
+      body {
+        font-family: 'Cairo', sans-serif;
+        background-color: var(--bg-main);
+        color: var(--text-main);
+        transition: background-color 0.5s ease, color 0.5s ease;
+      }
+
+      .quran-font {
+        font-family: 'Amiri', serif;
+      }
+
+      .gold-gradient {
+        background: linear-gradient(135deg, var(--accent) 0%, #f9e38c 50%, var(--accent) 100%);
+      }
+
+      .gold-text {
+        color: var(--accent);
+      }
+
+      .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+      }
+      
+      /* Simple override for text colors in components */
+      .text-white { color: var(--text-body) !important; }
+      .text-gray-400 { color: color-mix(in srgb, var(--text-body), transparent 40%) !important; }
+      .text-[#d4af37] { color: var(--accent) !important; }
+      .bg-[#d4af37] { background-color: var(--accent) !important; }
+      .border-[#d4af37] { border-color: var(--accent) !important; }
+      
+      input::placeholder { color: color-mix(in srgb, var(--text-body), transparent 60%) !important; }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "lucide-react": "https://esm.sh/lucide-react@^0.564.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.41.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
