@@ -43,7 +43,9 @@ const HadithView: React.FC = () => {
       setLoadingAudioId(item.id);
 
       if (!audioContextRef.current) {
-        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        // Fix: Use 24000Hz sample rate for Gemini TTS as per guidelines
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        audioContextRef.current = new AudioContextClass({ sampleRate: 24000 });
       }
 
       const base64Audio = await generateHadithAudio(item.text);

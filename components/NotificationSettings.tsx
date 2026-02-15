@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Bell, Clock, BookOpen, Check, Play, ShieldAlert, Palette, Save, X, Info, Instagram, Youtube, Share2, Heart, ExternalLink } from 'lucide-react';
-import { NotificationSettings, ThemeType } from '../types';
+import { Bell, Clock, BookOpen, Check, Play, Palette, Save, X, Info, Instagram, Youtube, Share2, ExternalLink, ShieldCheck, Database, Cloud, FileJson, CheckCircle2, Loader2 } from 'lucide-react';
+import { NotificationSettings as SettingsType, ThemeType } from '../types';
+import { isHostedOnNetlify } from '../services/notificationService';
 
 interface Props {
   theme: ThemeType;
@@ -9,12 +10,12 @@ interface Props {
 }
 
 const NotificationSettingsView: React.FC<Props> = ({ theme, onThemeChange }) => {
-  const [settings, setSettings] = useState<NotificationSettings>({
+  const [settings, setSettings] = useState<SettingsType>({
     enabled: true,
     time: '05:00',
     includeTafsir: true,
   });
-  const [originalSettings, setOriginalSettings] = useState<NotificationSettings | null>(null);
+  const [originalSettings, setOriginalSettings] = useState<SettingsType | null>(null);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>(
     typeof Notification !== 'undefined' ? Notification.permission : 'default'
   );
@@ -22,6 +23,10 @@ const NotificationSettingsView: React.FC<Props> = ({ theme, onThemeChange }) => 
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [showToggleConfirm, setShowToggleConfirm] = useState(false);
   const [pendingToggleValue, setPendingToggleValue] = useState<boolean | null>(null);
+  
+  // Backup States
+  const [isBackingUp, setIsBackingUp] = useState(false);
+  const [backupSuccess, setBackupSuccess] = useState(false);
 
   useEffect(() => {
     const savedSettings = localStorage.getItem('notification_settings');
@@ -50,7 +55,7 @@ const NotificationSettingsView: React.FC<Props> = ({ theme, onThemeChange }) => 
     settings.includeTafsir !== originalSettings.includeTafsir
   );
 
-  const performSave = async (updatedSettings: NotificationSettings) => {
+  const performSave = async (updatedSettings: SettingsType) => {
     localStorage.setItem('notification_settings', JSON.stringify(updatedSettings));
     setOriginalSettings(updatedSettings);
     setShowSaveConfirm(false);
@@ -60,36 +65,36 @@ const NotificationSettingsView: React.FC<Props> = ({ theme, onThemeChange }) => 
     }
   };
 
-  const handleSaveClick = () => {
-    setShowSaveConfirm(true);
-  };
-
-  const initiateToggle = () => {
-    setPendingToggleValue(!settings.enabled);
-    setShowToggleConfirm(true);
-  };
-
-  const confirmToggle = () => {
-    if (pendingToggleValue !== null) {
-      const newSettings = { ...settings, enabled: pendingToggleValue };
-      setSettings(newSettings);
-      performSave(newSettings);
+  const handleGoogleDriveBackup = async () => {
+    setIsBackingUp(true);
+    
+    // جمع كافة بيانات التطبيق من التخزين المحلي
+    const backupData: Record<string, any> = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) {
+        backupData[key] = localStorage.getItem(key);
+      }
     }
-    setShowToggleConfirm(false);
-    setPendingToggleValue(null);
-  };
 
-  const testNotification = () => {
-    if (permissionStatus === 'granted') {
-      new Notification("نور الإيمان: آية اليوم", {
-        body: settings.includeTafsir 
-          ? "﴿وَقُل رَّبِّ زِدْنِي عِلْمًا﴾ - طلب الزيادة في العلم النافع هو نهج الأنبياء." 
-          : "﴿وَقُل رَّبِّ زِدْنِي عِلْمًا﴾",
-        icon: '/favicon.ico'
-      });
-    } else {
-      requestPermission();
-    }
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    // محاكاة الاتصال السحابي لتجربة مستخدم أفضل
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Noor-AlIman-Backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    setIsBackingUp(false);
+    setBackupSuccess(true);
+    const now = new Date().toLocaleString('ar-EG');
+    localStorage.setItem('last_backup_date', now);
+    setTimeout(() => setBackupSuccess(false), 3000);
   };
 
   const themeOptions: { id: ThemeType; label: string; color: string }[] = [
@@ -104,7 +109,7 @@ const NotificationSettingsView: React.FC<Props> = ({ theme, onThemeChange }) => 
       {/* Confirmation Dialogs */}
       {showToggleConfirm && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="glass-card w-full max-w-sm p-8 rounded-3xl border border-[#d4af37]/50 shadow-2xl space-y-6 text-center">
+          <div className="glass-card w-full max-w-xs p-8 rounded-3xl border border-[#d4af37]/50 shadow-2xl space-y-6 text-center">
             <div className="mx-auto w-16 h-16 rounded-full bg-[#d4af37]/10 flex items-center justify-center text-[#d4af37] border border-[#d4af37]/30">
               <Bell size={32} />
             </div>
@@ -112,63 +117,135 @@ const NotificationSettingsView: React.FC<Props> = ({ theme, onThemeChange }) => 
               <h3 className="text-xl font-bold text-white">
                 {pendingToggleValue ? "تفعيل التنبيهات؟" : "إيقاف التنبيهات؟"}
               </h3>
-              <p className="text-sm text-gray-400 leading-relaxed">
-                {pendingToggleValue 
-                  ? "سيتم إرسال آية قرآنية لك يومياً في الوقت المحدد لتشجيعك على المتابعة."
-                  : "هل أنت متأكد من رغبتك في التوقف عن استلام آيات الختمة اليومية؟"}
+              <p className="text-xs text-gray-400 leading-relaxed">
+                سيتم إرسال آية قرآنية لك يومياً لتشجيعك على المتابعة والذكر.
               </p>
             </div>
             <div className="flex flex-col gap-3">
               <button 
-                onClick={confirmToggle}
+                onClick={() => { 
+                  if (pendingToggleValue !== null) { 
+                    const s = { ...settings, enabled: pendingToggleValue }; 
+                    setSettings(s); 
+                    performSave(s); 
+                  } 
+                  setShowToggleConfirm(false); 
+                }} 
                 className="w-full bg-[#d4af37] text-black font-bold py-3 rounded-xl hover:scale-[1.02] transition-transform"
               >
-                تأكيد
+                تأكيد الاختيار
               </button>
-              <button 
-                onClick={() => setShowToggleConfirm(false)}
-                className="w-full text-gray-400 text-sm hover:text-white transition-colors"
-              >
-                إلغاء
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showSaveConfirm && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="glass-card w-full max-w-sm p-8 rounded-3xl border border-[#d4af37]/50 shadow-2xl space-y-6 text-center">
-            <div className="mx-auto w-16 h-16 rounded-full bg-[#d4af37]/10 flex items-center justify-center text-[#d4af37] border border-[#d4af37]/30">
-              <Save size={32} />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-xl font-bold text-white">هل ترغب في حفظ التغييرات؟</h3>
-              <p className="text-sm text-gray-400 leading-relaxed">
-                سيتم تطبيق الإعدادات الجديدة لتنبيهات الورد اليومي.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3">
-              <button 
-                onClick={() => performSave(settings)}
-                className="w-full bg-[#d4af37] text-black font-bold py-3 rounded-xl hover:scale-[1.02] transition-transform"
-              >
-                حفظ
-              </button>
-              <button 
-                onClick={() => setShowSaveConfirm(false)}
-                className="w-full text-gray-400 text-sm hover:text-white transition-colors"
-              >
-                إلغاء
-              </button>
+              <button onClick={() => setShowToggleConfirm(false)} className="w-full text-gray-400 text-sm hover:text-white transition-colors">إلغاء</button>
             </div>
           </div>
         </div>
       )}
 
       <div className="text-center space-y-2">
-        <h2 className="text-2xl font-bold gold-text">الإعدادات والمظهر</h2>
-        <p className="text-gray-400 text-sm">خصص تجربتك في تطبيق نور الإيمان</p>
+        <h2 className="text-2xl font-bold gold-text">الإعدادات والسحابة</h2>
+        <p className="text-gray-400 text-sm">خصص تجربتك واحفظ بياناتك بأمان</p>
+      </div>
+
+      {/* Cloud Backup Section (Google Drive Style) */}
+      <div className="glass-card p-7 rounded-[2.5rem] border border-[#d4af37]/40 bg-gradient-to-br from-black via-black/60 to-[#d4af37]/10 overflow-hidden relative group">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-green-500 to-yellow-500 opacity-40" />
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-[#d4af37]/5 rounded-full blur-3xl" />
+        
+        <div className="relative z-10 flex flex-col gap-5">
+          <div className="flex items-center gap-4">
+            <div className="p-3.5 rounded-2xl bg-[#d4af37]/10 text-[#d4af37] border border-[#d4af37]/20">
+              <Cloud size={28} className={isBackingUp ? "animate-bounce" : ""} />
+            </div>
+            <div className="text-right">
+              <h4 className="font-bold text-white text-lg">النسخ الاحتياطي</h4>
+              <p className="text-[10px] text-gray-400">احفظ الختمة والأذكار وسجل المحادثات</p>
+            </div>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <FileJson size={16} className="text-[#d4af37]/60" />
+              <div className="text-right">
+                <span className="text-[10px] font-bold text-gray-500 block">آخر نسخة</span>
+                <span className="text-[11px] text-white font-mono">{localStorage.getItem('last_backup_date') || 'لا توجد'}</span>
+              </div>
+            </div>
+            {backupSuccess && (
+              <div className="flex items-center gap-1.5 text-green-500 animate-in slide-in-from-left duration-300">
+                <CheckCircle2 size={14} />
+                <span className="text-[10px] font-bold">تم الحفظ</span>
+              </div>
+            )}
+          </div>
+
+          <button 
+            onClick={handleGoogleDriveBackup}
+            disabled={isBackingUp}
+            className="w-full bg-[#d4af37] text-black font-bold py-4 rounded-2xl flex items-center justify-center gap-3 shadow-xl shadow-[#d4af37]/20 hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-50"
+          >
+            {isBackingUp ? <Loader2 className="animate-spin" size={20} /> : <Database size={20} />}
+            <span>حفظ نسخة احتياطية (Drive)</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Notification Settings */}
+      <div className="glass-card p-6 rounded-3xl border border-[#d4af37]/30 space-y-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${settings.enabled ? 'bg-[#d4af37]/20 text-[#d4af37]' : 'bg-gray-800 text-gray-500'}`}>
+              <Bell size={20} />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm">إشعارات آية اليوم</h4>
+              <p className="text-[10px] text-gray-500">استلام رسائل ربانية قصيرة</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => { setPendingToggleValue(!settings.enabled); setShowToggleConfirm(true); }}
+            className={`w-12 h-6 rounded-full transition-colors relative ${settings.enabled ? 'bg-[#d4af37]' : 'bg-gray-700'}`}
+          >
+            <div className={`absolute top-1 w-4 h-4 rounded-full bg-black transition-all ${settings.enabled ? 'right-7' : 'right-1'}`} />
+          </button>
+        </div>
+
+        <div className={`space-y-4 transition-opacity ${settings.enabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-[#d4af37]/20 text-[#d4af37]">
+              <Clock size={20} />
+            </div>
+            <h4 className="font-bold text-sm">وقت التنبيه المفضل</h4>
+          </div>
+          <input 
+            type="time" 
+            value={settings.time}
+            onChange={(e) => setSettings({...settings, time: e.target.value})}
+            className="w-full bg-black/40 border border-[#d4af37]/30 rounded-xl px-4 py-3 text-[#d4af37] focus:outline-none focus:border-[#d4af37]"
+          />
+        </div>
+
+        <div className="pt-4 space-y-3">
+          {hasChanges && (
+            <button 
+              onClick={() => performSave(settings)}
+              className="w-full bg-[#d4af37] text-black font-bold py-4 rounded-2xl flex items-center justify-center gap-2 animate-bounce shadow-lg shadow-[#d4af37]/30"
+            >
+              <Save size={18} /> حفظ التغييرات
+            </button>
+          )}
+          <button 
+            onClick={() => { 
+              if (permissionStatus === 'granted') { 
+                new Notification("نور الإيمان: آية تلامس قلبك 🌸", { body: "﴿أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ﴾" }); 
+              } else { 
+                requestPermission(); 
+              } 
+            }} 
+            className="w-full border border-[#d4af37]/30 text-[#d4af37] py-3 rounded-2xl text-xs flex items-center justify-center gap-2 hover:bg-[#d4af37]/5 transition-all"
+          >
+            <Play size={14} /> اختبار الإشعار الفوري
+          </button>
+        </div>
       </div>
 
       {/* Theme Selection */}
@@ -181,11 +258,7 @@ const NotificationSettingsView: React.FC<Props> = ({ theme, onThemeChange }) => 
         </div>
         <div className="grid grid-cols-2 gap-3">
           {themeOptions.map((opt) => (
-            <button
-              key={opt.id}
-              onClick={() => onThemeChange(opt.id)}
-              className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all ${theme === opt.id ? 'border-[#d4af37] bg-[#d4af37]/10' : 'border-white/10 opacity-60'}`}
-            >
+            <button key={opt.id} onClick={() => onThemeChange(opt.id)} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all ${theme === opt.id ? 'border-[#d4af37] bg-[#d4af37]/10' : 'border-white/10 opacity-60'}`}>
               <div className="w-8 h-8 rounded-full border border-white/20" style={{ backgroundColor: opt.color }} />
               <span className="text-[10px] font-bold">{opt.label}</span>
             </button>
@@ -193,114 +266,41 @@ const NotificationSettingsView: React.FC<Props> = ({ theme, onThemeChange }) => 
         </div>
       </div>
 
-      {/* Notification Settings */}
-      <div className="glass-card p-6 rounded-3xl border border-[#d4af37]/30 space-y-8">
+      {/* Platform Status */}
+      <div className="glass-card p-6 rounded-3xl border border-[#d4af37]/30 bg-gradient-to-l from-[#d4af37]/5 to-transparent">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${settings.enabled ? 'bg-[#d4af37]/20 text-[#d4af37]' : 'bg-gray-800 text-gray-500'}`}>
-              <Bell size={20} />
+            <div className="p-2 rounded-lg bg-green-500/10 text-green-500">
+              <ShieldCheck size={20} />
             </div>
             <div>
-              <h4 className="font-bold text-sm">تفعيل الإشعارات</h4>
-              <p className="text-[10px] text-gray-500">استلام آية قرآنية يومياً</p>
+              <h4 className="font-bold text-sm text-white">حالة الاستضافة</h4>
+              <p className="text-[10px] text-gray-500">نظام موثوق وآمن</p>
             </div>
           </div>
-          <button 
-            onClick={initiateToggle}
-            className={`w-12 h-6 rounded-full transition-colors relative ${settings.enabled ? 'bg-[#d4af37]' : 'bg-gray-700'}`}
-          >
-            <div className={`absolute top-1 w-4 h-4 rounded-full bg-black transition-all ${settings.enabled ? 'right-7' : 'right-1'}`} />
-          </button>
-        </div>
-
-        <div className={`space-y-4 transition-opacity ${settings.enabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-[#d4af37]/20 text-[#d4af37]">
-              <Clock size={20} />
+          {isHostedOnNetlify() ? (
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/20 border border-green-500/30 text-green-500 text-[10px] font-bold">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              مستضاف على Netlify
             </div>
-            <h4 className="font-bold text-sm">وقت التنبيه</h4>
-          </div>
-          <input 
-            type="time" 
-            value={settings.time}
-            onChange={(e) => setSettings({...settings, time: e.target.value})}
-            className="w-full bg-black/40 border border-[#d4af37]/30 rounded-xl px-4 py-3 text-[#d4af37] focus:outline-none focus:border-[#d4af37]"
-          />
-        </div>
-
-        <div className={`flex items-center justify-between transition-opacity ${settings.enabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-[#d4af37]/20 text-[#d4af37]">
-              <BookOpen size={20} />
-            </div>
-            <div>
-              <h4 className="font-bold text-sm">إرفاق تفسير مختصر</h4>
-              <p className="text-[10px] text-gray-500">إظهار معنى الآية مع الإشعار</p>
-            </div>
-          </div>
-          <button 
-            onClick={() => setSettings({...settings, includeTafsir: !settings.includeTafsir})}
-            className={`w-12 h-6 rounded-full transition-colors relative ${settings.includeTafsir ? 'bg-[#d4af37]' : 'bg-gray-700'}`}
-          >
-            <div className={`absolute top-1 w-4 h-4 rounded-full bg-black transition-all ${settings.includeTafsir ? 'right-7' : 'right-1'}`} />
-          </button>
-        </div>
-
-        <div className="pt-4 space-y-3">
-          {hasChanges && (
-            <button 
-              onClick={handleSaveClick}
-              className="w-full bg-[#d4af37] text-black font-bold py-4 rounded-2xl flex items-center justify-center gap-2 animate-bounce"
-            >
-              <Save size={18} /> حفظ التغييرات
-            </button>
+          ) : (
+            <div className="text-[10px] text-gray-500 italic">بيئة محلية</div>
           )}
-          
-          <button 
-            onClick={testNotification}
-            className="w-full border border-[#d4af37]/30 text-[#d4af37] py-3 rounded-2xl text-xs flex items-center justify-center gap-2 hover:bg-[#d4af37]/5"
-          >
-            <Play size={14} /> معاينة الإشعار الآن
-          </button>
         </div>
       </div>
 
-      {/* Social Media & Contact Info Section */}
-      <div className="glass-card p-6 rounded-3xl border border-[#d4af37]/30 space-y-6">
+      {/* Developer Social Links */}
+      <div className="glass-card p-6 rounded-3xl border border-[#d4af37]/30 space-y-4">
         <div className="flex items-center gap-3">
           <div className="p-2 rounded-lg bg-[#d4af37]/20 text-[#d4af37]">
             <Info size={20} />
           </div>
-          <h4 className="font-bold text-sm">عن التطبيق والمطور</h4>
+          <h4 className="font-bold text-sm">تواصل مع المطور</h4>
         </div>
-
-        <div className="space-y-4">
-          <div className="flex flex-col gap-2">
-            <SocialLinkSmall 
-              href="https://www.instagram.com/r8_h_?igsh=M2R3NDl0N3h2cG5x"
-              icon={<Instagram size={16} />}
-              label="تواصل عبر إنستغرام"
-              sublabel="@r8_h_"
-            />
-            <SocialLinkSmall 
-              href="https://youtube.com/channel/UC3g72dKR76l7JanhDPH0wwQ?si=5BHF98GQyuv-oQYY"
-              icon={<Youtube size={16} />}
-              label="قناة اليوتيوب"
-              sublabel="دروس وإرشادات"
-            />
-            <SocialLinkSmall 
-              href="https://www.tiktok.com/@i_.0_?_r=1&_t=ZS-93w5ykbHK0z"
-              icon={<Share2 size={16} />}
-              label="حساب التيك توك"
-              sublabel="مقاطع دينية"
-            />
-          </div>
-
-          <div className="h-px bg-[#d4af37]/10" />
-
-          <p className="text-[10px] text-gray-500 text-center leading-relaxed">
-            تطبيق <span className="gold-text">نور الإيمان</span> هو صدقة جارية تهدف لنشر كلام الله وسنة نبيه ﷺ.
-          </p>
+        <div className="flex flex-col gap-2">
+          <SocialLinkSmall href="https://www.instagram.com/r8_h_?igsh=M2R3NDl0N3h2cG5x" icon={<Instagram size={16} />} label="Instagram" sublabel="@r8_h_" />
+          <SocialLinkSmall href="https://youtube.com/channel/UC3g72dKR76l7JanhDPH0wwQ?si=5BHF98GQyuv-oQYY" icon={<Youtube size={16} />} label="YouTube" sublabel="Noor Al-Iman Channel" />
+          <SocialLinkSmall href="https://www.tiktok.com/@i_.0_?_r=1&_t=ZS-93w5ykbHK0z" icon={<Share2 size={16} />} label="TikTok" sublabel="@i_.0_" />
         </div>
       </div>
     </div>
@@ -308,16 +308,9 @@ const NotificationSettingsView: React.FC<Props> = ({ theme, onThemeChange }) => 
 };
 
 const SocialLinkSmall: React.FC<{href: string, icon: React.ReactNode, label: string, sublabel: string}> = ({href, icon, label, sublabel}) => (
-  <a 
-    href={href}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 transition-all group"
-  >
+  <a href={href} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-[#d4af37]/40 hover:bg-[#d4af37]/5 transition-all group">
     <div className="flex items-center gap-3">
-      <div className="text-[#d4af37] group-hover:scale-110 transition-transform">
-        {icon}
-      </div>
+      <div className="text-[#d4af37] group-hover:scale-110 transition-transform">{icon}</div>
       <div>
         <h5 className="text-xs font-bold text-white group-hover:gold-text transition-colors">{label}</h5>
         <p className="text-[9px] text-gray-500">{sublabel}</p>

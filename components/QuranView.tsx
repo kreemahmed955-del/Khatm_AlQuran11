@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Surah, Ayah } from '../types';
 import { RECITERS } from '../constants';
-import { Search, Book, ArrowRight, ChevronRight, Bookmark, Loader2, BookOpen, Play, Pause, Volume2, User, ChevronDown, Check, X, Headphones, Repeat, FastForward, Info, BookOpenCheck, Sparkles } from 'lucide-react';
+import { Search, Book, ArrowRight, ChevronRight, Bookmark, Loader2, BookOpen, Play, Pause, Volume2, User, ChevronDown, Check, X, Headphones, Repeat, FastForward, Info, BookOpenCheck, Sparkles, Command } from 'lucide-react';
 
 interface QuranViewProps {
   onSaveProgress: (progress: { surah: number, ayah: number }) => void;
@@ -47,7 +47,6 @@ const QuranView: React.FC<QuranViewProps> = ({ onSaveProgress }) => {
   const [isTafsirLoading, setIsTafsirLoading] = useState(false);
 
   useEffect(() => {
-    // Initialize audio object once
     audioRef.current = new Audio();
     
     const savedReciterId = localStorage.getItem('selected_reciter');
@@ -452,164 +451,199 @@ const QuranView: React.FC<QuranViewProps> = ({ onSaveProgress }) => {
 
   return (
     <div className="animate-in fade-in duration-500 pb-12 space-y-12">
-      {/* Premium Search Section */}
-      <div className="space-y-6">
-        {/* Tab Selection Pill */}
-        <div className="flex bg-black/60 backdrop-blur-xl rounded-2xl p-1.5 border border-[#d4af37]/20 w-fit mx-auto shadow-[0_10px_30px_rgba(0,0,0,0.4)] relative">
+      {/* Sleek Refined Search Section */}
+      <div className="space-y-10">
+        {/* Floating Tab Selection Pill */}
+        <div className="flex bg-black/40 backdrop-blur-3xl rounded-[2.2rem] p-1.5 border border-[#d4af37]/20 w-fit mx-auto shadow-2xl relative overflow-hidden group/tabs transition-all hover:border-[#d4af37]/40">
+          <div className="absolute inset-0 bg-[#d4af37]/5 opacity-0 group-hover/tabs:opacity-100 transition-opacity duration-700" />
           <div 
-            className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-[#d4af37] rounded-xl transition-all duration-500 ease-out shadow-lg shadow-[#d4af37]/20
+            className={`absolute top-1.5 bottom-1.5 w-[calc(50%-6px)] bg-gradient-to-br from-[#d4af37] to-[#f9e38c] rounded-[1.8rem] transition-all duration-700 cubic-bezier(0.34, 1.56, 0.64, 1) shadow-[0_10px_25px_rgba(212,175,55,0.4)]
               ${isVerseSearch ? 'translate-x-[-100%]' : 'translate-x-0'}`} 
           />
           <button 
             onClick={() => { setIsVerseSearch(false); setSearch(''); setVerseSearchResults([]); }}
-            className={`relative z-10 px-8 py-3 rounded-xl text-xs font-bold transition-colors duration-500 flex items-center gap-2 ${!isVerseSearch ? 'text-black' : 'text-gray-500 hover:text-[#d4af37]'}`}
+            className={`relative z-10 px-12 py-4 rounded-2xl text-[11px] font-extrabold transition-all duration-500 flex items-center gap-3 ${!isVerseSearch ? 'text-black' : 'text-gray-400 hover:text-[#d4af37]'}`}
           >
-            <Book size={14} />
+            <Book size={18} strokeWidth={2.5} className={!isVerseSearch ? "animate-pulse" : ""} />
             فهرس السور
           </button>
           <button 
             onClick={() => { setIsVerseSearch(true); setSearch(''); }}
-            className={`relative z-10 px-8 py-3 rounded-xl text-xs font-bold transition-colors duration-500 flex items-center gap-2 ${isVerseSearch ? 'text-black' : 'text-gray-500 hover:text-[#d4af37]'}`}
+            className={`relative z-10 px-12 py-4 rounded-2xl text-[11px] font-extrabold transition-all duration-500 flex items-center gap-3 ${isVerseSearch ? 'text-black' : 'text-gray-400 hover:text-[#d4af37]'}`}
           >
-            <Search size={14} />
+            <Search size={18} strokeWidth={2.5} className={isVerseSearch ? "animate-pulse" : ""} />
             بحث الآيات
           </button>
         </div>
 
-        {/* Search Bar Bar */}
-        <div className="relative group max-w-3xl mx-auto">
-          {/* Decorative Glow */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-[#d4af37]/0 via-[#d4af37]/10 to-[#d4af37]/0 blur-2xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-700" />
+        {/* Premium Integrated Floating Search Bar */}
+        <div className="relative group max-w-3xl mx-auto px-4 md:px-0">
+          {/* Animated Ambient Glow */}
+          <div className="absolute -inset-6 bg-gradient-to-r from-[#d4af37]/0 via-[#d4af37]/15 to-[#d4af37]/0 blur-[80px] opacity-0 group-focus-within:opacity-100 transition-all duration-1000 scale-95 group-focus-within:scale-100" />
           
-          <div className={`relative flex items-center bg-black/40 backdrop-blur-2xl border-2 rounded-[2.5rem] p-1.5 transition-all duration-500 
-            ${isSearchingVerses ? 'border-[#d4af37]' : 'border-white/5 group-focus-within:border-[#d4af37]/50 shadow-2xl group-focus-within:scale-[1.01]'}`}>
+          <div className={`relative flex items-center bg-black/70 backdrop-blur-3xl border-2 rounded-[3.5rem] p-3 transition-all duration-700 ease-out
+            ${isSearchingVerses ? 'border-[#d4af37] shadow-[0_0_50px_rgba(212,175,55,0.2)]' : 'border-[#d4af37]/20 group-focus-within:border-[#d4af37] shadow-[0_20px_60px_rgba(0,0,0,0.6)] group-focus-within:scale-[1.02]'}`}>
             
-            {/* Prominent Icon */}
-            <div className="ml-2 flex items-center justify-center w-14 h-14 rounded-full bg-[#d4af37]/10 text-[#d4af37] transition-all duration-500 group-focus-within:bg-[#d4af37] group-focus-within:text-black">
+            {/* Focal Search Icon Hub */}
+            <div className="mr-2 flex items-center justify-center w-16 h-16 rounded-full bg-black/90 border border-[#d4af37]/30 text-[#d4af37] transition-all duration-700 group-focus-within:bg-[#d4af37] group-focus-within:text-black group-focus-within:shadow-[0_0_30px_rgba(212,175,55,0.6)] group-focus-within:rotate-[360deg]">
               {isSearchingVerses ? (
-                <Loader2 className="animate-spin" size={24} />
+                <Loader2 className="animate-spin" size={30} />
               ) : (
-                <Search className="group-focus-within:scale-110 transition-transform" size={24} />
+                <Search className="group-hover:scale-110 transition-transform" size={30} strokeWidth={3} />
               )}
             </div>
 
             <input 
               type="text" 
-              placeholder={isVerseSearch ? "اكتب ما تبحث عنه في كتاب الله..." : "ابحث عن سورة محددة..."}
+              placeholder={isVerseSearch ? "اكتب كلمة من الوحي الإلهي..." : "ابحث عن السورة المباركة..."}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && isVerseSearch && handleVerseSearch()}
-              className="flex-1 bg-transparent border-none px-4 py-4 text-white placeholder:text-gray-600 focus:outline-none text-right font-medium text-lg quran-font"
+              className="flex-1 bg-transparent border-none px-6 py-4 text-white placeholder:text-gray-600 focus:outline-none text-right font-bold text-2xl quran-font tracking-wide"
             />
 
-            <div className="flex items-center gap-2 px-2">
+            <div className="flex items-center gap-4 px-4">
               {search.length > 0 && (
                 <button 
                   onClick={() => { setSearch(''); setVerseSearchResults([]); }}
-                  className="p-3 text-gray-500 hover:text-white transition-colors hover:bg-white/5 rounded-full"
+                  className="p-3.5 text-gray-500 hover:text-white transition-all hover:bg-white/10 rounded-full group/close"
+                  title="مسح البحث"
                 >
-                  <X size={18} />
+                  <X size={24} className="group-hover/close:rotate-180 transition-transform duration-700" />
                 </button>
               )}
-              {isVerseSearch && (
+              {isVerseSearch ? (
                 <button 
                   onClick={handleVerseSearch}
                   disabled={isSearchingVerses || !search.trim()}
-                  className="bg-[#d4af37] text-black font-bold text-sm px-10 py-4 rounded-[1.8rem] hover:shadow-[0_0_20px_rgba(212,175,55,0.4)] active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2"
+                  className="bg-gradient-to-br from-[#d4af37] to-[#f9e38c] text-black font-black text-sm px-14 py-5 rounded-[2.5rem] hover:shadow-[0_15px_40px_rgba(212,175,55,0.6)] active:scale-90 transition-all disabled:opacity-50 flex items-center gap-3 group/btn relative overflow-hidden"
                 >
-                  <span>بحث</span>
-                  <Sparkles size={16} />
+                  <div className="absolute inset-0 bg-white/30 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 ease-in-out" />
+                  <span className="relative z-10 uppercase tracking-tighter">بحث ذكي</span>
+                  <Sparkles size={20} className="relative z-10 group-hover/btn:animate-spin" />
                 </button>
+              ) : (
+                <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] shadow-inner">
+                  <Command size={14} className="opacity-50" />
+                  <span>K</span>
+                </div>
               )}
             </div>
           </div>
           
-          {/* Subtext info */}
-          {!isVerseSearch && search === '' && (
-            <div className="mt-4 flex justify-center gap-6 opacity-40">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2"><Book size={10} /> 114 سورة</span>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] flex items-center gap-2"><Sparkles size={10} /> 6236 آية</span>
+          {/* Animated labels */}
+          <div className="mt-8 flex justify-center gap-12 animate-in fade-in slide-in-from-top-4 duration-1000 delay-700">
+            <div className="flex items-center gap-3 px-6 py-2.5 rounded-[1.2rem] bg-white/5 border border-white/5 text-[11px] font-black text-gray-400 uppercase tracking-[0.3em] group-hover:border-[#d4af37]/30 transition-all hover:text-[#d4af37]">
+              <Book size={16} className="text-[#d4af37] opacity-70" />
+              <span>١١٤ سورة مباركة</span>
             </div>
-          )}
+            <div className="flex items-center gap-3 px-6 py-2.5 rounded-[1.2rem] bg-white/5 border border-white/5 text-[11px] font-black text-gray-400 uppercase tracking-[0.3em] group-hover:border-[#d4af37]/30 transition-all hover:text-[#d4af37]">
+              <BookOpenCheck size={16} className="text-[#d4af37] opacity-70" />
+              <span>بحث قرآني متقدم</span>
+            </div>
+          </div>
         </div>
       </div>
 
       {!isVerseSearch ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in duration-700">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-700">
           {filteredSurahs.map((surah) => (
             <button 
               key={surah.number}
               onClick={() => handleSurahClick(surah)}
-              className="glass-card p-6 rounded-[2.5rem] border border-white/5 hover:border-[#d4af37]/40 flex items-center justify-between transition-all group hover:bg-[#d4af37]/5 hover:translate-y-[-2px]"
+              className="glass-card p-8 rounded-[3.2rem] border border-white/5 hover:border-[#d4af37]/60 flex items-center justify-between transition-all group hover:bg-[#d4af37]/10 hover:translate-y-[-8px] shadow-2xl relative overflow-hidden"
             >
-              <div className="flex items-center gap-5">
-                <div className="w-14 h-14 rounded-2xl bg-[#d4af37]/10 border border-[#d4af37]/20 flex items-center justify-center text-sm font-bold gold-text shadow-inner group-hover:bg-[#d4af37] group-hover:text-black transition-all duration-500">
+              <div className="absolute inset-0 bg-gradient-to-br from-[#d4af37]/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              <div className="flex items-center gap-8 relative z-10">
+                <div className="w-18 h-18 rounded-[1.8rem] bg-black/60 border border-white/10 flex items-center justify-center text-lg font-black gold-text shadow-inner group-hover:bg-[#d4af37] group-hover:text-black transition-all duration-700">
                   {surah.number}
                 </div>
                 <div className="text-right">
-                  <h3 className="font-bold text-xl text-white group-hover:text-[#f9e38c] transition-colors">{surah.name}</h3>
-                  <p className="text-[10px] text-gray-500 font-medium tracking-wider uppercase mt-1">{surah.englishName}</p>
+                  <h3 className="font-bold text-3xl text-white group-hover:text-[#f9e38c] transition-colors quran-font leading-none">{surah.name}</h3>
+                  <p className="text-[11px] text-gray-500 font-black tracking-[0.2em] uppercase mt-2 opacity-50 group-hover:opacity-100 transition-all">{surah.englishName}</p>
                 </div>
               </div>
-              <div className="bg-white/5 p-3 rounded-2xl opacity-0 group-hover:opacity-100 transition-all -translate-x-4 group-hover:translate-x-0 group-hover:bg-[#d4af37]/20">
-                <ChevronRight className="text-[#d4af37]" />
+              <div className="bg-[#d4af37]/10 p-4 rounded-3xl opacity-0 group-hover:opacity-100 transition-all -translate-x-8 group-hover:translate-x-0 group-hover:bg-[#d4af37]/30 relative z-10">
+                <ChevronRight className="text-[#d4af37]" strokeWidth={3} />
               </div>
             </button>
           ))}
         </div>
       ) : (
-        <div className="space-y-6 animate-in fade-in duration-700">
+        <div className="space-y-10 animate-in fade-in duration-700">
           {isSearchingVerses ? (
-            <div className="flex flex-col items-center justify-center py-24 gap-6">
+            <div className="flex flex-col items-center justify-center py-40 gap-12">
               <div className="relative">
-                <div className="absolute inset-0 animate-ping bg-[#d4af37]/20 rounded-full" />
-                <div className="relative w-20 h-20 rounded-full bg-black border-2 border-[#d4af37] flex items-center justify-center">
-                  <Loader2 className="animate-spin text-[#d4af37]" size={32} />
+                <div className="absolute inset-[-30px] animate-ping bg-[#d4af37]/20 rounded-full duration-[2000ms]" />
+                <div className="relative w-32 h-32 rounded-full bg-black border-2 border-[#d4af37] flex items-center justify-center shadow-[0_0_80px_rgba(212,175,55,0.5)]">
+                  <Loader2 className="animate-spin text-[#d4af37]" size={56} />
                 </div>
               </div>
-              <p className="text-[#d4af37] font-bold text-lg quran-font animate-pulse">جاري استخراج الآيات من المصحف الشريف...</p>
+              <div className="text-center space-y-4">
+                <p className="text-[#d4af37] font-black text-3xl quran-font animate-pulse tracking-[0.2em] uppercase">جاري استحضار الآيات العظيمة</p>
+                <div className="flex justify-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-bounce [animation-delay:-0.3s]" />
+                    <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-bounce [animation-delay:-0.15s]" />
+                    <span className="w-2 h-2 rounded-full bg-[#d4af37] animate-bounce" />
+                </div>
+              </div>
             </div>
           ) : verseSearchResults.length > 0 ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between px-4">
-                <span className="h-px flex-1 bg-gradient-to-l from-transparent to-[#d4af37]/20" />
-                <p className="text-[10px] font-bold text-[#d4af37] mx-4 uppercase tracking-[0.2em]">تم العثور على {verseSearchResults.length} نتيجة</p>
-                <span className="h-px flex-1 bg-gradient-to-r from-transparent to-[#d4af37]/20" />
+            <div className="space-y-10">
+              <div className="flex items-center justify-between px-10">
+                <span className="h-px flex-1 bg-gradient-to-l from-transparent via-[#d4af37]/40 to-transparent" />
+                <div className="flex items-center gap-4 mx-10">
+                  <Sparkles size={20} className="text-[#d4af37] animate-pulse" />
+                  <p className="text-[14px] font-black text-[#d4af37] uppercase tracking-[0.5em] font-arabic">
+                    النتائج المكتشفة: {verseSearchResults.length} موضع مبارك
+                  </p>
+                </div>
+                <span className="h-px flex-1 bg-gradient-to-r from-transparent via-[#d4af37]/40 to-transparent" />
               </div>
               {verseSearchResults.map((match, idx) => (
                 <div 
                   key={idx}
-                  className="glass-card p-8 rounded-[2.5rem] border border-white/5 hover:border-[#d4af37]/40 transition-all text-right group relative overflow-hidden"
+                  className="glass-card p-14 rounded-[4rem] border border-white/10 hover:border-[#d4af37]/70 transition-all text-right group relative overflow-hidden shadow-[0_30px_70px_rgba(0,0,0,0.4)]"
                 >
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-[#d4af37]/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div className="flex justify-between items-center mb-5 relative z-10">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-[#d4af37]/10 rounded-full blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                  <div className="flex justify-between items-center mb-10 relative z-10">
                     <button 
                       onClick={() => handleNavigateToVerse(match)}
-                      className="text-[10px] font-bold bg-[#d4af37]/10 text-[#d4af37] px-6 py-2.5 rounded-full flex items-center gap-2 hover:bg-[#d4af37] hover:text-black transition-all shadow-sm"
+                      className="text-[12px] font-black bg-[#d4af37]/10 text-[#d4af37] px-12 py-5 rounded-full flex items-center gap-4 hover:bg-[#d4af37] hover:text-black transition-all shadow-2xl active:scale-90 group/open border border-[#d4af37]/20"
                     >
-                      <BookOpen size={14} /> تصفح السورة
+                      <BookOpen size={20} className="group-hover/open:rotate-12 transition-transform" /> 
+                      تصفح السورة المباركة
                     </button>
                     <div className="flex flex-col items-end">
-                      <span className="text-xl font-bold gold-text quran-font">{match.surah.name}</span>
-                      <span className="text-[10px] text-gray-500 font-bold uppercase">آية {match.numberInSurah}</span>
+                      <span className="text-4xl font-black gold-text quran-font tracking-wider mb-2">{match.surah.name}</span>
+                      <div className="h-0.5 w-16 bg-gradient-to-l from-[#d4af37] to-transparent mb-2" />
+                      <span className="text-[12px] text-gray-500 font-black uppercase tracking-[0.3em]">الآية {match.numberInSurah}</span>
                     </div>
                   </div>
-                  <p className="quran-font text-3xl leading-[2] text-white group-hover:text-[#f9e38c] transition-colors relative z-10">
+                  <p className="quran-font text-4xl md:text-6xl leading-[2.6] text-white group-hover:text-[#f9e38c] transition-all relative z-10 drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]">
                     {match.text}
                   </p>
                 </div>
               ))}
             </div>
           ) : search.trim() !== '' ? (
-            <div className="text-center py-24 text-gray-500 glass-card rounded-[3rem] border border-white/5 animate-in zoom-in duration-500">
-              <Book size={80} className="mx-auto mb-6 opacity-10 text-[#d4af37]" />
-              <p className="text-xl font-bold text-white mb-2">عذراً، لم نجد نتائج لـ "{search}"</p>
-              <p className="text-sm opacity-60">تأكد من كتابة الكلمة بشكل صحيح في محرك بحث الوحي</p>
+            <div className="text-center py-40 text-gray-500 glass-card rounded-[5rem] border border-white/5 animate-in zoom-in duration-1000 shadow-[0_40px_80px_rgba(0,0,0,0.6)]">
+              <div className="w-32 h-32 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-10 border-2 border-white/10 relative">
+                <Book size={64} className="opacity-10 text-[#d4af37] scale-125" />
+                <X size={32} className="absolute inset-0 m-auto text-red-500/40" />
+              </div>
+              <h3 className="text-4xl font-black text-white mb-6 quran-font">لم تظهر نتائج لبحثك</h3>
+              <p className="text-sm opacity-40 max-w-sm mx-auto leading-relaxed font-bold uppercase tracking-widest">جرّب كلمات أخرى أو تأكد من خلوها من التشكيل في محرك البحث.</p>
             </div>
           ) : (
-            <div className="text-center py-24 text-gray-500 opacity-30">
-              <Search size={100} className="mx-auto mb-6" />
-              <p className="text-sm font-bold uppercase tracking-[0.3em]">اكتب ما تبحث عنه في كتاب الله العزيز</p>
+            <div className="text-center py-48 opacity-10 group cursor-default">
+              <div className="relative inline-block mb-12">
+                <Search size={180} className="mx-auto group-hover:scale-110 group-hover:rotate-12 transition-transform duration-1000 ease-out" />
+                <div className="absolute -top-6 -right-6 bg-[#d4af37] w-14 h-14 rounded-full flex items-center justify-center text-black animate-pulse shadow-2xl">
+                    <Sparkles size={30} />
+                </div>
+              </div>
+              <p className="text-sm font-black uppercase tracking-[0.8em] group-hover:tracking-[1em] transition-all duration-1000 font-arabic opacity-60">ابحث عن السكينة في كلمات الله العزيز</p>
             </div>
           )}
         </div>

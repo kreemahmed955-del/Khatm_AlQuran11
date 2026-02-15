@@ -23,6 +23,7 @@ import HadithView from './components/HadithView';
 import IstighfarBanner from './components/IstighfarBanner';
 import PrayerTimesView from './components/PrayerTimesView';
 import { Tab, ThemeType } from './types';
+import { checkAndShowDailyVerse } from './services/notificationService';
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('home');
@@ -40,9 +41,16 @@ const App: React.FC = () => {
       document.body.className = `theme-${savedTheme}`;
     }
 
-    if ('Notification' in window) {
-      Notification.requestPermission();
-    }
+    const initNotifications = async () => {
+      if ('Notification' in window) {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          checkAndShowDailyVerse();
+        }
+      }
+    };
+
+    initNotifications();
 
     const interval = setInterval(() => {
       window.dispatchEvent(new CustomEvent('trigger-istighfar'));
